@@ -1,0 +1,9 @@
+# ignore pycache files
+__pycache__/
+*.py[cod]
+*$py.class
+# ignore virtual environment folders
+venv/
+env/
+.venv/
+.env/
