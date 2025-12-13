@@ -119,3 +119,46 @@ def knight_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
                 all_moves.append((xCandidate, yCandidate))
         
     return all_moves
+
+# return all positions possible of the queen
+def queen_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
+    all_moves = []
+    m1 = rook_moves(board, pos, color)
+    m2 = bishop_moves(board, pos, color)
+    all_moves.append(m1)
+    all_moves.append(m2)
+    return all_moves
+
+# return all positions possibles of the king
+def king_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
+    all_moves = []
+    pos_x = pos[0]
+    pos_y = pos[1]
+    # all possible steps for a king (works the same as the knight)
+    deltas = [(1,0), (-1,0), (0,1), (0,-1), (1,1), (-1,1), (1,-1), (-1,-1)]
+    
+    for x, y in deltas:
+        xCandidate = pos_x + x
+        yCandidate = pos_y + y
+        if 0 <= xCandidate < board.shape[0] and 0 <= yCandidate < board.shape[1]:
+            if board[xCandidate, yCandidate] != '' and board[xCandidate, yCandidate][-1] != color:
+                all_moves.append((xCandidate, yCandidate))
+            elif board[xCandidate, yCandidate] == '':
+                all_moves.append((xCandidate, yCandidate))
+                
+    return all_moves
+
+# return all position possibles of the pawn
+def pawn_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
+    all_moves = []
+    pos_x = pos[0]
+    pos_y = pos[1]
+    
+    if pos_y > 0 and board[pos_x+1,pos_y-1] != '' and board[pos_x+1,pos_y-1][-1] != color:
+        all_moves.append((pos_x+1,pos_y-1))
+    if pos_y < board.shape[1] - 1 and board[pos_x+1,pos_y+1] != '' and board[pos_x+1,pos_y+1][1] != color:
+        all_moves.append((pos_x+1,pos_y+1))
+    elif board[pos_x+1,pos_y] == '':
+        all_moves.append((pos_x+1,pos_y))
+    
+    return all_moves

@@ -1,5 +1,5 @@
 from Bots.ChessBotList import register_chess_bot
-from strategies.base_moves import rook_moves, bishop_moves, knight_moves
+from strategies.base_moves import *
 import random
 
 def atRandom(player_sequence, board, time_budget, **kwargs):
@@ -13,6 +13,7 @@ def atRandom(player_sequence, board, time_budget, **kwargs):
     all_rooks_moves = {}
     all_bishops_moves = {}
     all_knights_moves = {}
+    all_pawns_moves = {}
     
     for x in range(board.shape[0]):
         for y in range(board.shape[1]):
@@ -40,7 +41,23 @@ def atRandom(player_sequence, board, time_budget, **kwargs):
                     all_knights_moves[(x,y)] = moves
                     if len(moves) > 0:
                         movable_pieces.append((x,y))
-                        
+                
+                if board[x,y][0] == "p":
+                    moves = pawn_moves(board, (x,y), color)
+                    all_pawns_moves[(x,y)] = moves
+                    if len(moves) > 0:
+                        movable_pieces.append((x,y))
+                
+                if board[x,y][0] == "q":
+                    queen = queen_moves(board, (x,y), color)
+                    if len(queen) > 0:
+                        movable_pieces.append((x,y))
+
+                if board[x,y][0] == "k":
+                    king = king_moves(board, (x,y), color)
+                    if len(king) > 0:
+                        movable_pieces.append((x,y))
+
     piece_to_move = random.choice(movable_pieces)
     
     match board[piece_to_move][0]:
@@ -50,7 +67,13 @@ def atRandom(player_sequence, board, time_budget, **kwargs):
             return piece_to_move, random.choice(all_bishops_moves.get(piece_to_move))
         case "n":
             return piece_to_move, random.choice(all_knights_moves.get(piece_to_move))
+        case "p":
+            return piece_to_move, random.choice(all_pawns_moves.get(piece_to_move))
+        case "q":
+            return piece_to_move, random.choice(queen)
+        case "k":
+            return piece_to_move, random.choice(king)
    
     return (0,0), (0,0)
 
-register_chess_bot("atRandomV1", atRandom)
+register_chess_bot("totalRandomV1", atRandom)
