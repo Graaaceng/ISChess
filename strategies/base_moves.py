@@ -1,4 +1,8 @@
 # return all positions possible of the rook (r)
+
+from utils.utils import new_board
+
+
 def rook_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
     all_moves = []
     pos_x = pos[0]
@@ -9,45 +13,35 @@ def rook_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
     # if adjacent square is not free and different color -> add position and stop the loop
     # else add the position and continue loop
 
+    def add_moves_and_stop(new_pos: tuple[int, int]) -> bool:
+        if board[new_pos] != "" and board[new_pos][-1] == color:
+            return True
+        elif board[new_pos] != "" and board[new_pos][-1] != color:
+            all_moves.append((pos, new_pos, new_board(board, pos, new_pos)))
+            return True
+        else:
+            all_moves.append((pos, new_pos, new_board(board, pos, new_pos)))
+            return False
+
     # up
     for i in range(pos_x, board.shape[0] - 1):
-        if board[i + 1, pos_y] != "" and board[i + 1, pos_y][-1] == color:
+        if add_moves_and_stop((i + 1, pos_y)):
             break
-        elif board[i + 1, pos_y] != "" and board[i + 1, pos_y][-1] != color:
-            all_moves.append((i + 1, pos_y))
-            break
-        else:
-            all_moves.append((i + 1, pos_y))
 
     # down
     for i in range(pos_x, 0, -1):
-        if board[i - 1, pos_y] != "" and board[i - 1, pos_y][-1] == color:
+        if add_moves_and_stop((i - 1, pos_y)):
             break
-        elif board[i - 1, pos_y] != "" and board[i - 1, pos_y][-1] != color:
-            all_moves.append((i - 1, pos_y))
-            break
-        else:
-            all_moves.append((i - 1, pos_y))
 
     # right
     for i in range(pos_y, board.shape[1] - 1):
-        if board[pos_x, i + 1] != "" and board[pos_x, i + 1][-1] == color:
+        if add_moves_and_stop((pos_x, i + 1)):
             break
-        elif board[pos_x, i + 1] != "" and board[pos_x, i + 1][-1] != color:
-            all_moves.append((pos_x, i + 1))
-            break
-        else:
-            all_moves.append((pos_x, i + 1))
 
     # left
     for i in range(pos_y, 0, -1):
-        if board[pos_x, i - 1] != "" and board[pos_x, i - 1][-1] == color:
+        if add_moves_and_stop((pos_x, i - 1)):
             break
-        elif board[pos_x, i - 1] != "" and board[pos_x, i - 1][-1] != color:
-            all_moves.append((pos_x, i - 1))
-            break
-        else:
-            all_moves.append((pos_x, i - 1))
 
     return all_moves
 
@@ -58,47 +52,35 @@ def bishop_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
     pos_x = pos[0]
     pos_y = pos[1]
 
-    # same as the rook but diagonally
+    def add_moves_and_stop(new_pos: tuple[int, int]) -> bool:
+        if board[new_pos] != "" and board[new_pos][-1] == color:
+            return False
+        elif board[new_pos] != "" and board[new_pos][-1] != color:
+            all_moves.append((pos, new_pos, new_board(board, pos, new_pos)))
+            return False
+        else:
+            all_moves.append((pos, new_pos, new_board(board, pos, new_pos)))
+            return True
 
     # north east
     for i, j in zip(range(pos_x, board.shape[0] - 1), range(pos_y, board.shape[1] - 1)):
-        if board[i + 1, j + 1] != "" and board[i + 1, j + 1][-1] == color:
+        if add_moves_and_stop((i + 1, j + 1)):
             break
-        elif board[i + 1, j + 1] != "" and board[i + 1, j + 1][-1] != color:
-            all_moves.append((i + 1, j + 1))
-            break
-        else:
-            all_moves.append((i + 1, j + 1))
 
     # north west
     for i, j in zip(range(pos_x, board.shape[0] - 1), range(pos_y, 0, -1)):
-        if board[i + 1, j - 1] != "" and board[i + 1, j - 1][-1] == color:
+        if add_moves_and_stop((i + 1, j - 1)):
             break
-        elif board[i + 1, j - 1] != "" and board[i + 1, j - 1][-1] != color:
-            all_moves.append((i + 1, j - 1))
-            break
-        else:
-            all_moves.append((i + 1, j - 1))
 
     # south est
     for i, j in zip(range(pos_x, 0, -1), range(pos_y, board.shape[1] - 1)):
-        if board[i - 1, j + 1] != "" and board[i - 1, j + 1][-1] == color:
+        if add_moves_and_stop((i - 1, j + 1)):
             break
-        elif board[i - 1, j + 1] != "" and board[i - 1, j + 1][-1] != color:
-            all_moves.append((i - 1, j + 1))
-            break
-        else:
-            all_moves.append((i - 1, j + 1))
 
     # south west
     for i, j in zip(range(pos_x, 0, -1), range(pos_y, 0, -1)):
-        if board[i - 1, j - 1] != "" and board[i - 1, j - 1][-1] == color:
+        if add_moves_and_stop((i - 1, j - 1)):
             break
-        elif board[i - 1, j - 1] != "" and board[i - 1, j - 1][-1] != color:
-            all_moves.append((i - 1, j - 1))
-            break
-        else:
-            all_moves.append((i - 1, j - 1))
 
     return all_moves
 
@@ -119,9 +101,21 @@ def knight_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
                 board[xCandidate, yCandidate] != ""
                 and board[xCandidate, yCandidate][-1] != color
             ):
-                all_moves.append((xCandidate, yCandidate))
+                all_moves.append(
+                    (
+                        pos,
+                        (xCandidate, yCandidate),
+                        new_board(board, pos, (xCandidate, yCandidate)),
+                    )
+                )
             elif board[xCandidate, yCandidate] == "":
-                all_moves.append((xCandidate, yCandidate))
+                all_moves.append(
+                    (
+                        pos,
+                        (xCandidate, yCandidate),
+                        new_board(board, pos, (xCandidate, yCandidate)),
+                    )
+                )
 
     return all_moves
 
@@ -152,9 +146,21 @@ def king_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
                 board[xCandidate, yCandidate] != ""
                 and board[xCandidate, yCandidate][-1] != color
             ):
-                all_moves.append((xCandidate, yCandidate))
+                all_moves.append(
+                    (
+                        pos,
+                        (xCandidate, yCandidate),
+                        new_board(board, pos, (xCandidate, yCandidate)),
+                    )
+                )
             elif board[xCandidate, yCandidate] == "":
-                all_moves.append((xCandidate, yCandidate))
+                all_moves.append(
+                    (
+                        pos,
+                        (xCandidate, yCandidate),
+                        new_board(board, pos, (xCandidate, yCandidate)),
+                    )
+                )
 
     return all_moves
 
@@ -170,14 +176,20 @@ def pawn_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int]]:
         and board[pos_x + 1, pos_y - 1] != ""
         and board[pos_x + 1, pos_y - 1][-1] != color
     ):
-        all_moves.append((pos_x + 1, pos_y - 1))
+        all_moves.append(
+            (pos, (pos_x + 1, pos_y - 1), new_board(board, pos, (pos_x + 1, pos_y - 1)))
+        )
     if (
         pos_y < board.shape[1] - 1
         and board[pos_x + 1, pos_y + 1] != ""
         and board[pos_x + 1, pos_y + 1][1] != color
     ):
-        all_moves.append((pos_x + 1, pos_y + 1))
-    elif board[pos_x + 1, pos_y] == "":
-        all_moves.append((pos_x + 1, pos_y))
+        all_moves.append(
+            (pos, (pos_x + 1, pos_y + 1), new_board(board, pos, (pos_x + 1, pos_y + 1)))
+        )
+    if board[pos_x + 1, pos_y] == "":
+        all_moves.append(
+            (pos, (pos_x + 1, pos_y), new_board(board, pos, (pos_x + 1, pos_y)))
+        )
 
     return all_moves

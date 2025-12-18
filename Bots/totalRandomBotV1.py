@@ -2,6 +2,8 @@ from Bots.ChessBotList import register_chess_bot
 from strategies.base_moves import *
 import random
 
+from strategies.board_score import get_board_score
+
 
 def atRandom(player_sequence, board, time_budget, **kwargs):
 
@@ -10,82 +12,44 @@ def atRandom(player_sequence, board, time_budget, **kwargs):
     # choose at random a move in that piece's move list
 
     color = player_sequence[1]
-    movable_pieces = []
-    all_rooks_moves = {}
-    all_bishops_moves = {}
-    all_knights_moves = {}
-    all_pawns_moves = {}
+
+    all_moves = []
+    best_moves = []
+    best_score = -9999
     for x in range(board.shape[0]):
         for y in range(board.shape[1]):
 
             # look for all the pieces
             if board[x, y] != "" and board[x, y][-1] == color:
+                match board[x, y][0]:
+                    case "r":
+                        all_moves.extend(rook_moves(board, (x, y), color))
+                    case "b":
+                        all_moves.extend(bishop_moves(board, (x, y), color))
+                    case "n":
+                        all_moves.extend(knight_moves(board, (x, y), color))
+                    case "p":
+                        all_moves.extend(pawn_moves(board, (x, y), color))
+                    case "q":
+                        all_moves.extend(queen_moves(board, (x, y), color))
+                    case "k":
+                        all_moves.extend(king_moves(board, (x, y), color))
+                    case _:
+                        pass
 
-                if board[x, y][0] == "r":
-                    # calculate all its moves
-                    moves = rook_moves(board, (x, y), color)
-                    # save it in a dictionnary with its origine coordinates as a key
-                    all_rooks_moves[(x, y)] = moves
-                    # movable piece if the move list is not empty
-                    if len(moves) > 0:
-                        movable_pieces.append((x, y))
-
-                if board[x, y][0] == "b":
-                    moves = bishop_moves(board, (x, y), color)
-                    all_bishops_moves[(x, y)] = moves
-                    if len(moves) > 0:
-                        movable_pieces.append((x, y))
-
-                if board[x, y][0] == "n":
-                    moves = knight_moves(board, (x, y), color)
-                    all_knights_moves[(x, y)] = moves
-                    if len(moves) > 0:
-                        movable_pieces.append((x, y))
-
-                if board[x, y][0] == "p":
-                    moves = pawn_moves(board, (x, y), color)
-                    all_pawns_moves[(x, y)] = moves
-                    if len(moves) > 0:
-                        movable_pieces.append((x, y))
-
-                if board[x, y][0] == "q":
-                    queen = queen_moves(board, (x, y), color)
-                    if len(queen) > 0:
-                        movable_pieces.append((x, y))
-
-                if board[x, y][0] == "k":
-                    king = king_moves(board, (x, y), color)
-                    if len(king) > 0:
-                        movable_pieces.append((x, y))
-
-    if len(movable_pieces) == 0:
+    if len(all_moves) == 0:
         return (0, 0), (0, 0)
 
-    piece_to_move = random.choice(movable_pieces)
+    for move_from, move_to, board in all_moves:
+        score = get_board_score(board, color)
+        if score > best_score:
+            best_score = score
+            best_moves = [(move_from, move_to)]
+        elif score == best_score:
+            best_moves.append((move_from, move_to))
 
-    match board[piece_to_move][0]:
-        case "r":
-            moves = all_rooks_moves.get(piece_to_move, [])
-            if not moves:
-                return (0, 0), (0, 0)
-            return piece_to_move, random.choice(moves)
-        case "b":
-            moves = all_bishops_moves.get(piece_to_move, [])
-            return piece_to_move, random.choice(moves) if moves else (0, 0)
-        case "n":
-            moves = all_knights_moves.get(piece_to_move, [])
-            return piece_to_move, random.choice(moves) if moves else (0, 0)
-        case "p":
-            moves = all_pawns_moves.get(piece_to_move, [])
-            return piece_to_move, random.choice(moves) if moves else (0, 0)
-        case "q":
-            return piece_to_move, random.choice(queen)
-        case "k":
-            return piece_to_move, random.choice(king) if king else (0, 0)
-        case _:
-            pass
-
-    return (0, 0), (0, 0)
+    (return_pos_x, return_pos_y) = random.choice(best_moves)
+    return return_pos_x, return_pos_y
 
 
 register_chess_bot("totalRandomV1", atRandom)
