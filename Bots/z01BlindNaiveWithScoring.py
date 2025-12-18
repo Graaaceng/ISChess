@@ -5,7 +5,7 @@ import random
 from strategies.board_score import get_board_score
 
 
-def atRandom(player_sequence, board, time_budget, **kwargs):
+def naiveRandom(player_sequence, board, time_budget, **kwargs):
 
     # find all pieces that can move = their move list is NOT empty (and store them in a list)
     # choose at random a piece in that list
@@ -16,6 +16,7 @@ def atRandom(player_sequence, board, time_budget, **kwargs):
     all_moves = []
     best_moves = []
     best_score = -9999
+
     for x in range(board.shape[0]):
         for y in range(board.shape[1]):
 
@@ -52,4 +53,4 @@ def atRandom(player_sequence, board, time_budget, **kwargs):
     return return_pos_x, return_pos_y
 
 
-register_chess_bot("totalRandomV1", atRandom)
+register_chess_bot("RandomBlind", naiveRandom)
