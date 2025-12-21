@@ -1,104 +1,115 @@
-import random
 from Bots.ChessBotList import register_chess_bot
 from strategies.base_moves import *
+import random
+
 from strategies.board_score import get_board_score
-from utils.type import Board
 
 
 def naiveObserver(player_sequence, initial_board, time_budget, **kwargs):
 
+    # find all pieces that can move = their move list is NOT empty (and store them in a list)
+    # choose at random a piece in that list
+    # choose at random a move in that piece's move list
+
     my_color = player_sequence[1]
 
-    def getMovesAndScore(
-        board: Board, pos: tuple[int, int], color: str, score: int
-    ) -> list[tuple[tuple[int, int], tuple[int, int], Board, int]]:
-        moves_map = {
-            "r": rook_moves,
-            "b": bishop_moves,
-            "n": knight_moves,
-            "p": pawn_moves,
-            "q": queen_moves,
-            "k": king_moves,
-        }
-        piece_type = board[pos[0], pos[1]][0]
-        function = moves_map.get(piece_type)
-
-        moves = function(board, pos, color)
-        return [
-            (move_from, move_to, board, score + get_board_score(board, color))
-            for move_from, move_to, board in moves
-        ]
-
     def getNextBoards(
-        boards: list[Board], color: str, score: int = None
-    ) -> list[tuple[tuple[int, int], tuple[int, int], Board, int]]:
+        boards, color, score=None
+    ) -> list[tuple[tuple[int, int], tuple[int, int], any, int]]:
         all_boards = []
         current_score = 0 if score is None else score
 
         for board in boards:
             for x in range(board.shape[0]):
                 for y in range(board.shape[1]):
+                    # look for all the pieces
                     if board[x, y] != "" and board[x, y][-1] == color:
-                        all_boards.extend(
-                            getMovesAndScore(
-                                board,
-                                (x, y),
-                                color,
-                                current_score,
-                            )
-                        )
+                        match board[x, y][0]:
+                            case "r":
+                                all_boards.extend(
+                                    rook_moves(
+                                        board,
+                                        (x, y),
+                                        color,
+                                    ),
+                                    # current_score + get_board_score(board, color),
+                                )
+                            case "b":
+                                all_boards.extend(
+                                    bishop_moves(
+                                        board,
+                                        (x, y),
+                                        color,
+                                    ),
+                                    # current_score + get_board_score(board, color),
+                                )
+                            case "n":
+                                all_boards.extend(
+                                    knight_moves(
+                                        board,
+                                        (x, y),
+                                        color,
+                                    ),
+                                    # current_score + get_board_score(board, color),
+                                )
+                            case "p":
+                                all_boards.extend(
+                                    pawn_moves(
+                                        board,
+                                        (x, y),
+                                        color,
+                                    ),
+                                    # current_score + get_board_score(board, color),
+                                )
+                            case "q":
+                                all_boards.extend(
+                                    queen_moves(
+                                        board,
+                                        (x, y),
+                                        color,
+                                    ),
+                                    # current_score + get_board_score(board, color),
+                                )
+                            case "k":
+                                all_boards.extend(
+                                    king_moves(
+                                        board,
+                                        (x, y),
+                                        color,
+                                    ),
+                                    # current_score + get_board_score(board, color),
+                                )
+                            case _:
+                                pass
+
         return all_boards
 
-    def getBestBoards(
-        boards: list[tuple[Board, int, list[tuple[tuple[int, int], tuple[int, int]]]]],
-    ):
+    def getBestBoards(boards, color):
         best_score = float("-inf")
-        best_first_moves = []
-        for board, score, move_path in boards:
+        best_moves = list()
+        for move_from, move_to, board in boards:
+            score = get_board_score(board, color)
             if score > best_score:
                 best_score = score
-                best_first_moves = [move_path[0]]
+                best_moves = [(move_from, move_to, board)]
             elif score == best_score:
-                if move_path[0] not in best_first_moves:
-                    best_first_moves.append(move_path[0])
-        return best_first_moves
+                best_moves.append((move_from, move_to, board))
 
-    def dfs(
-        boards: list[tuple[Board, int, list[tuple[tuple[int, int], tuple[int, int]]]]],
-        depth: int,
-        max_depth: int,
-        color: str,
-    ):
-        if depth >= max_depth:
-            return boards
+        return best_moves
 
-        next_boards = []
-        for board, score, move_path in boards:
-            # get all possible next boards
-            for next_from, next_to, next_board, next_score in getNextBoards(
-                [board], color, score
-            ):
-                # add move to the path
-                new_path = move_path + [(next_from, next_to)]
-                next_boards.append((next_board, next_score, new_path))
+    possible_boards = getNextBoards(list([initial_board]), my_color, 0)
 
-        if len(next_boards) == 0:
-            return boards
-
-        # change color for next step
-        next_color = "w" if color == "b" else "b"
-        return dfs(next_boards, depth + 1, max_depth, next_color)
-
-    initial_boards = [(initial_board, 0, [])]
-    evaluated_boards = dfs(initial_boards, 0, 2, my_color)
-
-    if len(evaluated_boards) == 0 or len(evaluated_boards[0][2]) == 0:
+    if len(possible_boards) == 0:
         return (0, 0), (0, 0)
-    print(f"calculated boards: {len(evaluated_boards)}")
 
-    best_first_moves = getBestBoards(evaluated_boards)
+    enemy_boards = getNextBoards(
+        [board for _, _, board in possible_boards],
+        "w" if my_color == "b" else "b",
+    )
 
-    return_pos_x, return_pos_y = random.choice(best_first_moves)
+    best_boards = getBestBoards(possible_boards, my_color)
+
+    (return_pos_x, return_pos_y, board) = random.choice(best_boards)
 
     return return_pos_x, return_pos_y
 
