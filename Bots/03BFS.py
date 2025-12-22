@@ -25,7 +25,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         moves = function(board, pos, color)
         return [
-            (move_from, move_to, board, score + get_board_score(board, color))
+            (move_from, move_to, board, score + get_board_score(board, my_color))
             for move_from, move_to, board in moves
         ]
 
@@ -49,21 +49,47 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
                         )
         return all_boards
 
+    def has_both_kings(board: Board) -> bool:
+        has_white_king = False
+        has_black_king = False
+
+        for x in range(board.shape[0]):
+            for y in range(board.shape[1]):
+                if board[x, y] == "kw":
+                    has_white_king = True
+                elif board[x, y] == "kb":
+                    has_black_king = True
+
+                if has_white_king and has_black_king:
+                    return True
+
+        return has_white_king and has_black_king
+
     def getBestBoards(
         boards: list[tuple[Board, int, list[tuple[tuple[int, int], tuple[int, int]]]]],
     ):
-        best_score = float("-inf")
-        best_first_moves = []
+        # grouper les boards par leur 1er move
+        moves_scores = {}  # (from, to): [scores finaux]
+
         for board, score, move_path in boards:
-            if score > best_score:
-                best_score = score
-                best_first_moves = [move_path[0]]
-            elif score == best_score:
-                if move_path[0] not in best_first_moves:
-                    best_first_moves.append(move_path[0])
+            if len(move_path) > 0:
+                first_move = move_path[0]
+                if first_move not in moves_scores:
+                    moves_scores[first_move] = []
+                moves_scores[first_move].append(score)
+
+        moves_worst_score = {move: min(scores) for move, scores in moves_scores.items()}
+
+        best_worst_score = max(moves_worst_score.values())
+        best_first_moves = [
+            move
+            for move, worst_score in moves_worst_score.items()
+            if worst_score == best_worst_score
+        ]
+
         return best_first_moves
 
-    def dfs(
+    def bfs(
         boards: list[tuple[Board, int, list[tuple[tuple[int, int], tuple[int, int]]]]],
         depth: int,
         max_depth: int,
@@ -73,24 +99,29 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
             return boards
 
         next_boards = []
+        terminal_boards = []
+
         for board, score, move_path in boards:
             # get all possible next boards
             for next_from, next_to, next_board, next_score in getNextBoards(
                 [board], color, score
             ):
-                # add move to the path
                 new_path = move_path + [(next_from, next_to)]
-                next_boards.append((next_board, next_score, new_path))
+
+                if not has_both_kings(next_board):
+                    terminal_boards.append((next_board, next_score, new_path))
+                else:
+                    next_boards.append((next_board, next_score, new_path))
 
         if len(next_boards) == 0:
-            return boards
+            return boards + terminal_boards
 
-        # change color for next step
         next_color = "w" if color == "b" else "b"
-        return dfs(next_boards, depth + 1, max_depth, next_color)
+        explored_boards = bfs(next_boards, depth + 1, max_depth, next_color)
+        return explored_boards + terminal_boards
 
     initial_boards = [(initial_board, 0, [])]
-    evaluated_boards = dfs(initial_boards, 0, 2, my_color)
+    evaluated_boards = bfs(initial_boards, 0, 3, my_color)
 
     if len(evaluated_boards) == 0 or len(evaluated_boards[0][2]) == 0:
         return (0, 0), (0, 0)
@@ -103,4 +134,4 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
     return return_pos_x, return_pos_y
 
 
-register_chess_bot("01DFS", Observer)
+register_chess_bot("01BFS", Observer)

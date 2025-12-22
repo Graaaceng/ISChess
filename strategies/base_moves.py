@@ -171,6 +171,9 @@ def pawn_moves(board, pos: tuple[int, int], color) -> list[tuple[int, int, any]]
     pos_x = pos[0]
     pos_y = pos[1]
 
+    if pos_x + 1 >= board.shape[0]:
+        return all_moves
+
     if (
         pos_y > 0
         and board[pos_x + 1, pos_y - 1] != ""
