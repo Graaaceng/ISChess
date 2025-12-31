@@ -1,4 +1,7 @@
-def get_board_score(board, player_color):
+from utils.type import Board
+
+
+def get_board_score(board: Board, player_color: str) -> int:
     score = 0
     piece_values = {
         "p": 11,
@@ -6,7 +9,7 @@ def get_board_score(board, player_color):
         "n": 22,
         "b": 22,
         "q": 23,
-        "k": 0,
+        "k": 1000,
     }
     for x in range(board.shape[0]):
         for y in range(board.shape[1]):
