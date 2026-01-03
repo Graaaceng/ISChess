@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from BotWidget import BotWidget
+from utils.metrics import MetricsTracker
 
 
 class Player:
@@ -10,6 +11,7 @@ class Player:
         self.color: str = color
         #self.rotation: int = rotation
         self.widget: BotWidget = widget
+        self.metrics = MetricsTracker()
 
     def get_budget(self) -> float:
         return self.widget.budgetValue.value()

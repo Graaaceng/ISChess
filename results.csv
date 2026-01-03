@@ -1,0 +1,11 @@
+game,winner,white_bot,black_bot,total_turns,metric,white_dom,white_plays,white_pct,black_dom,black_plays,black_pct
+1,b,NaiveObserver,NaiveObserver,48,time_percent_we_dominate,11,24,45.83333333333333,8,24,33.33333333333333
+2,b,NaiveObserver,NaiveObserver,38,time_percent_we_dominate,2,19,10.526315789473683,12,19,63.1578947368421
+3,w,NaiveObserver,NaiveObserver,39,time_percent_we_dominate,9,20,45.0,10,19,52.63157894736842
+4,b,NaiveObserver,NaiveObserver,74,time_percent_we_dominate,19,37,51.35135135135135,17,37,45.94594594594595
+5,b,NaiveObserver,NaiveObserver,32,time_percent_we_dominate,10,16,62.5,3,16,18.75
+6,b,NaiveObserver,NaiveObserver,20,time_percent_we_dominate,3,10,30.0,2,10,20.0
+7,b,NaiveObserver,NaiveObserver,20,time_percent_we_dominate,1,10,10.0,6,10,60.0
+8,w,NaiveObserver,NaiveObserver,73,time_percent_we_dominate,19,37,51.35135135135135,16,36,44.44444444444444
+9,w,NaiveObserver,NaiveObserver,45,time_percent_we_dominate,20,23,86.95652173913044,2,22,9.090909090909092
+10,b,NaiveObserver,NaiveObserver,68,time_percent_we_dominate,19,34,55.88235294117647,14,34,41.17647058823529

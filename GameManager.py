@@ -14,6 +14,7 @@ from ParallelPlayer import ParallelTurn
 from Piece import Piece
 from PieceManager import PieceManager
 from Player import Player
+from save_results import ResultSaver
 
 if TYPE_CHECKING:
     from ChessArena import ChessArena
@@ -63,6 +64,7 @@ class GameManager:
         self.timeout.timeout.connect(lambda: self.end_turn(forced=True))
         self.min_wait = QTimer()
         self.min_wait.timeout.connect(self.end_if_finished)
+        self.result_saver = ResultSaver()
 
     def reset(self):
         """Reset the game"""
@@ -111,7 +113,7 @@ class GameManager:
         budget: float = player.get_budget()
         sequence: str = self.get_sequence()
         func_name, func = player.get_func()
-        print(f"Player {self.turn}'s turn: {func_name} (budget: {budget:.2f}s)")
+        # print(f"Player {self.turn}'s turn: {func_name} (budget: {budget:.2f}s)")
 
         tile_width = self.arena.white_square.size().width()
         tile_height = self.arena.white_square.size().width()
@@ -328,10 +330,10 @@ class GameManager:
         This function calls either `start` or `stop` depending on the current state
         """
         if self.auto_playing:
-            print("Stopping")
+            # print("Stopping")
             self.stop()
         else:
-            print("Starting")
+            # print("Starting")
             self.start()
 
     def undo_move(self):
@@ -410,9 +412,12 @@ class GameManager:
 
         row1 = real_start[0] + 1
         row2 = real_end[0] + 1
-        self.arena.push_move_to_history(
-            f"{col1}{row1} -> {col2}{row2}", color_name
-        )
+        self.arena.push_move_to_history(f"{col1}{row1} -> {col2}{row2}", color_name)
+
+        # Mettre à jour les métriques
+        player: Player = self.players[self.turn]
+        player.metrics.update(self.current_player_board, self.get_sequence())
+        print(f"{color_name}: {player.metrics.get_summary()}")
 
         return True
 
@@ -426,7 +431,9 @@ class GameManager:
                     return
 
         color_name: str = PieceManager.COLOR_NAMES[current_color]
-        self.arena.show_message(
-            f"{color_name} player won the match", "End of game"
-        )
+
+        # Sauvegarder le résultat dans le CSV
+        self.result_saver.save_game_result(current_color, self.players)
+
+        self.arena.show_message(f"{color_name} player won the match", "End of game")
         self.stop()
