@@ -288,7 +288,7 @@ class GameManager:
             print("Already auto-playing")
             return False
         self.auto_playing = True
-        print(f"Starting auto-play for {self.nbr_turn_to_play} moves")
+        # print(f"Starting auto-play for {self.nbr_turn_to_play} moves")
         self.next()
         return True
 
@@ -369,9 +369,9 @@ class GameManager:
 
         start_piece_and_col = f"{start_piece.type}{start_piece.color}"
 
-        print(
-            f"{color_name} moved {PieceManager.get_piece_name(start_piece_and_col)} from {start} to {end}"
-        )
+        # print(
+        #     f"{color_name} moved {PieceManager.get_piece_name(start_piece_and_col)} from {start} to {end}"
+        # )
 
         # Capture
         if end_piece != '':
@@ -386,9 +386,11 @@ class GameManager:
         board[start[0], start[1]] = ""
 
         if type(end_piece) is Piece:
-            print("longueur avant : ", len(self.board_manager.pieces))
-            self.board_manager.pieces = [p for p in self.board_manager.pieces if p is not end_piece]
-            print("longueur après : ", len(self.board_manager.pieces))
+            # print("longueur avant : ", len(self.board_manager.pieces))
+            self.board_manager.pieces = [
+                p for p in self.board_manager.pieces if p is not end_piece
+            ]
+            # print("longueur après : ", len(self.board_manager.pieces))
 
             self.arena.remove_piece(end_piece)
         

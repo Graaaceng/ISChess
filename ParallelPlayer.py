@@ -14,7 +14,10 @@ class ParallelTurn(QtCore.QThread):
         self.time_budget = time_budget
 
         self.team = int(player_sequence[0])
+        # print("Initializing Parallel Player for team ", type(player_sequence[0]))
+        # print("Color: ", self.color)
         self.color = player_sequence[1]
+        # print("Color: ", self.color)
         self.board_orientation = int(player_sequence[2])
 
         self.tile_width = tile_width

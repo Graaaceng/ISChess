@@ -79,8 +79,10 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
                 moves_scores[first_move].append(score)
 
         moves_worst_score = {move: min(scores) for move, scores in moves_scores.items()}
+        # print(f"Moves worst scores: {moves_worst_score}")
 
         best_worst_score = max(moves_worst_score.values())
+        # print(f"Best worst score: {best_worst_score}")
         best_first_moves = [
             move
             for move, worst_score in moves_worst_score.items()
@@ -125,7 +127,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
     if len(evaluated_boards) == 0 or len(evaluated_boards[0][2]) == 0:
         return (0, 0), (0, 0)
-    print(f"calculated boards: {len(evaluated_boards)}")
+    # print(f"calculated boards: {len(evaluated_boards)}")
 
     best_first_moves = getBestBoards(evaluated_boards)
 
