@@ -43,6 +43,10 @@ class ResultSaver:
                 if black_stats["plays"] > 0
                 else 0
             ),
+            "white_avg_time": white_stats["avg_time"],
+            "white_total_time": white_stats["total_time"],
+            "black_avg_time": black_stats["avg_time"],
+            "black_total_time": black_stats["total_time"],
         }
         self.results.append(result)
         self.save()

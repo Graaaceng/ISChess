@@ -1,5 +1,5 @@
 import random
-import time
+from functools import lru_cache
 from Bots.ChessBotList import register_chess_bot
 from strategies.base_moves import *
 from strategies.board_score import get_board_score
@@ -10,8 +10,19 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
     my_color = player_sequence[1]
 
-    start_time = time.time()
-    time_limit = time_budget if time_budget else float("inf")
+    # Cache pour mémoïzation
+    board_score_cache = {}
+
+    def board_to_key(board: Board) -> tuple:
+        """Convertit un board en clé hashable pour la mémoïzation"""
+        return tuple(tuple(row) for row in board)
+
+    def get_cached_score(board: Board, color: str) -> int:
+        """Version mémoïzée de get_board_score"""
+        key = (board_to_key(board), color)
+        if key not in board_score_cache:
+            board_score_cache[key] = get_board_score(board, color)
+        return board_score_cache[key]
 
     def getMovesAndScore(
         board: Board, pos: tuple[int, int], color: str, score: int
@@ -29,7 +40,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         moves = function(board, pos, color)
         return [
-            (move_from, move_to, board, score + get_board_score(board, my_color))
+            (move_from, move_to, board, score + get_cached_score(board, my_color))
             for move_from, move_to, board in moves
         ]
 
@@ -101,10 +112,6 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         max_depth: int,
         color: str,
     ):
-        elapsed_time = time.time() - start_time
-        if elapsed_time > 0.90 * time_limit:
-            return boards
-
         if depth >= max_depth:
             return boards
 
@@ -112,10 +119,6 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         terminal_boards = []
 
         for board, score, move_path in boards:
-            elapsed_time = time.time() - start_time
-            if elapsed_time > 0.90 * time_limit:
-                break
-
             # get all possible next boards
             for next_from, next_to, next_board, next_score in getNextBoards(
                 [board], color, score
@@ -135,7 +138,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         return explored_boards + terminal_boards
 
     initial_boards = [(initial_board, 0, [])]
-    evaluated_boards = bfs(initial_boards, 0, 4, my_color)
+    evaluated_boards = bfs(initial_boards, 0, 3, my_color)
 
     if len(evaluated_boards) == 0 or len(evaluated_boards[0][2]) == 0:
         return (0, 0), (0, 0)
@@ -148,4 +151,4 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
     return return_pos_x, return_pos_y
 
 
-register_chess_bot("03BFS", Observer)
+register_chess_bot("04BFS_memoization", Observer)

@@ -19,6 +19,8 @@ class MetricsTracker:
     def __init__(self):
         self.domination_score = 0
         self.total_plays = 0
+        self.total_time = 0.0
+        self.move_times = []
 
     def update(self, board, player_sequence):
         """update les valeurs après un coup"""
@@ -26,14 +28,29 @@ class MetricsTracker:
             board, player_sequence, self.domination_score, self.total_plays
         )
 
+    def add_move_time(self, time_seconds):
+        self.move_times.append(time_seconds)
+        self.total_time += time_seconds
+
     def get_percentage(self):
         if self.total_plays == 0:
             return 0.0
         return (self.domination_score / self.total_plays) * 100
 
+    def get_avg_time(self):
+        if len(self.move_times) == 0:
+            return 0.0
+        return self.total_time / len(self.move_times)
+
     def get_summary(self):
         percentage = self.get_percentage()
-        return f"Domination: {self.domination_score}/{self.total_plays} tours ({percentage:.1f}%)"
+        avg_time = self.get_avg_time()
+        return f"Domination: {self.domination_score}/{self.total_plays} tours ({percentage:.1f}%) - Temps moy: {avg_time:.3f}s"
 
     def get_stats(self):
-        return {"dom": self.domination_score, "plays": self.total_plays}
+        return {
+            "dom": self.domination_score,
+            "plays": self.total_plays,
+            "total_time": self.total_time,
+            "avg_time": self.get_avg_time(),
+        }

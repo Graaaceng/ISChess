@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import time
 from typing import List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
@@ -60,6 +61,7 @@ class GameManager:
         self.current_player_board = None
         self.player_finished: bool = False
         self.auto_playing: bool = False
+        self.move_start_time: float = 0.0
         self.timeout = QTimer()
         self.timeout.timeout.connect(lambda: self.end_turn(forced=True))
         self.min_wait = QTimer()
@@ -145,6 +147,8 @@ class GameManager:
 
         self.current_player.setTerminationEnabled(True)
         self.current_player.finished.connect(self.on_player_finished)
+
+        self.move_start_time = time.time()
         self.current_player.start()
 
         # Timer to call
@@ -414,10 +418,15 @@ class GameManager:
         row2 = real_end[0] + 1
         self.arena.push_move_to_history(f"{col1}{row1} -> {col2}{row2}", color_name)
 
+        move_time = time.time() - self.move_start_time
+
         # Mettre à jour les métriques
         player: Player = self.players[self.turn]
         player.metrics.update(self.current_player_board, self.get_sequence())
-        print(f"{color_name}: {player.metrics.get_summary()}")
+        player.metrics.add_move_time(move_time)
+        print(
+            f"{color_name}: {player.metrics.get_summary()} - last move: {move_time:.3f}"
+        )
 
         return True
 
@@ -432,8 +441,6 @@ class GameManager:
 
         color_name: str = PieceManager.COLOR_NAMES[current_color]
 
-        # Sauvegarder le résultat dans le CSV
         self.result_saver.save_game_result(current_color, self.players)
-
         self.arena.show_message(f"{color_name} player won the match", "End of game")
         self.stop()

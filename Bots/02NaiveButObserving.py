@@ -114,4 +114,4 @@ def naiveObserver(player_sequence, initial_board, time_budget, **kwargs):
     return return_pos_x, return_pos_y
 
 
-register_chess_bot("NaiveObserver", naiveObserver)
+register_chess_bot("02NaiveObserver", naiveObserver)
