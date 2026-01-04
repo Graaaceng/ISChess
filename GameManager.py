@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import time
 from typing import List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
@@ -14,6 +15,7 @@ from ParallelPlayer import ParallelTurn
 from Piece import Piece
 from PieceManager import PieceManager
 from Player import Player
+from save_results import ResultSaver
 
 if TYPE_CHECKING:
     from ChessArena import ChessArena
@@ -59,10 +61,12 @@ class GameManager:
         self.current_player_board = None
         self.player_finished: bool = False
         self.auto_playing: bool = False
+        self.move_start_time: float = 0.0
         self.timeout = QTimer()
         self.timeout.timeout.connect(lambda: self.end_turn(forced=True))
         self.min_wait = QTimer()
         self.min_wait.timeout.connect(self.end_if_finished)
+        self.result_saver = ResultSaver()
 
     def reset(self):
         """Reset the game"""
@@ -111,7 +115,7 @@ class GameManager:
         budget: float = player.get_budget()
         sequence: str = self.get_sequence()
         func_name, func = player.get_func()
-        print(f"Player {self.turn}'s turn: {func_name} (budget: {budget:.2f}s)")
+        # print(f"Player {self.turn}'s turn: {func_name} (budget: {budget:.2f}s)")
 
         tile_width = self.arena.white_square.size().width()
         tile_height = self.arena.white_square.size().width()
@@ -143,6 +147,8 @@ class GameManager:
 
         self.current_player.setTerminationEnabled(True)
         self.current_player.finished.connect(self.on_player_finished)
+
+        self.move_start_time = time.time()
         self.current_player.start()
 
         # Timer to call
@@ -288,7 +294,7 @@ class GameManager:
             print("Already auto-playing")
             return False
         self.auto_playing = True
-        print(f"Starting auto-play for {self.nbr_turn_to_play} moves")
+        # print(f"Starting auto-play for {self.nbr_turn_to_play} moves")
         self.next()
         return True
 
@@ -328,10 +334,10 @@ class GameManager:
         This function calls either `start` or `stop` depending on the current state
         """
         if self.auto_playing:
-            print("Stopping")
+            # print("Stopping")
             self.stop()
         else:
-            print("Starting")
+            # print("Starting")
             self.start()
 
     def undo_move(self):
@@ -369,9 +375,9 @@ class GameManager:
 
         start_piece_and_col = f"{start_piece.type}{start_piece.color}"
 
-        print(
-            f"{color_name} moved {PieceManager.get_piece_name(start_piece_and_col)} from {start} to {end}"
-        )
+        # print(
+        #     f"{color_name} moved {PieceManager.get_piece_name(start_piece_and_col)} from {start} to {end}"
+        # )
 
         # Capture
         if end_piece != '':
@@ -386,9 +392,11 @@ class GameManager:
         board[start[0], start[1]] = ""
 
         if type(end_piece) is Piece:
-            print("longueur avant : ", len(self.board_manager.pieces))
-            self.board_manager.pieces = [p for p in self.board_manager.pieces if p is not end_piece]
-            print("longueur après : ", len(self.board_manager.pieces))
+            # print("longueur avant : ", len(self.board_manager.pieces))
+            self.board_manager.pieces = [
+                p for p in self.board_manager.pieces if p is not end_piece
+            ]
+            # print("longueur après : ", len(self.board_manager.pieces))
 
             self.arena.remove_piece(end_piece)
         
@@ -408,8 +416,16 @@ class GameManager:
 
         row1 = real_start[0] + 1
         row2 = real_end[0] + 1
-        self.arena.push_move_to_history(
-            f"{col1}{row1} -> {col2}{row2}", color_name
+        self.arena.push_move_to_history(f"{col1}{row1} -> {col2}{row2}", color_name)
+
+        move_time = time.time() - self.move_start_time
+
+        # Mettre à jour les métriques
+        player: Player = self.players[self.turn]
+        player.metrics.update(self.current_player_board, self.get_sequence())
+        player.metrics.add_move_time(move_time)
+        print(
+            f"{color_name}: {player.metrics.get_summary()} - last move: {move_time:.3f}"
         )
 
         return True
@@ -424,7 +440,7 @@ class GameManager:
                     return
 
         color_name: str = PieceManager.COLOR_NAMES[current_color]
-        self.arena.show_message(
-            f"{color_name} player won the match", "End of game"
-        )
+
+        self.result_saver.save_game_result(current_color, self.players)
+        self.arena.show_message(f"{color_name} player won the match", "End of game")
         self.stop()

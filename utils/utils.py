@@ -1,7 +1,14 @@
 def new_board(board, prev_pos, new_pos):
     new_board = board.copy()
-    new_board[new_pos] = new_board[prev_pos]
+    piece = new_board[prev_pos]
+    new_board[new_pos] = piece
     new_board[prev_pos] = ""
+
+    # Promote pawn to queen if it reaches the last rank
+    if piece != "" and piece[0] == "p" and new_pos[0] == board.shape[0] - 1:
+        color = piece[1]
+        new_board[new_pos] = f"q{color}"
+
     return new_board
 
 
