@@ -7,10 +7,12 @@ from utils.type import Board
 from utils.utils import *
 
 
-def Observer(player_sequence, initial_board, time_budget, **kwargs):
+def observer_with_limit(player_sequence, initial_board, time_budget, **kwargs):
     start_time = time.time()
-
     my_color = player_sequence[1]
+    
+    def remaining_time():
+        return time_budget - (time.time() - start_time)
 
     def getMovesAndScore(
         board: Board, pos: tuple[int, int], color: str, score: int
@@ -98,6 +100,9 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         max_depth: int,
         color: str,
     ):
+        if remaining_time() < 0.03: #margin of safety
+            return boards
+        
         if depth >= max_depth:
             return boards
 
@@ -105,6 +110,10 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         terminal_boards = []
 
         for board, score, move_path in boards:
+            
+            if remaining_time() < 0.03: #margin of safety
+                return boards + terminal_boards
+            
             # get all possible next boards
             for next_from, next_to, next_board, next_score in getNextBoards(
                 [board], color, score
@@ -122,22 +131,40 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         next_color = "w" if color == "b" else "b"
         explored_boards = bfs(next_boards, depth + 1, max_depth, next_color)
         return explored_boards + terminal_boards
-
+    
     initial_boards = [(initial_board, 0, [])]
-    evaluated_boards = bfs(initial_boards, 0, 3, my_color)
-
-    if len(evaluated_boards) == 0 or len(evaluated_boards[0][2]) == 0:
-        return (0, 0), (0, 0)
+    best_results = []
+    max_depth = 1
+    
+    while remaining_time() > 0.05:  # keep some time to decide
+        try:
+            evaluated_boards = bfs(initial_boards, 0, max_depth, my_color)
+            
+            if len(evaluated_boards) > 0 and len(evaluated_boards[0][2]) > 0:
+                best_results = evaluated_boards
+            
+            if remaining_time() > 0.1:
+                max_depth += 1
+            else:
+                break
+        except Exception as e:
+            print(f"Error in BFS: {e}")
+            break
+        
+    if len(best_results) == 0 or len(best_results[0][2]) == 0:
+        return (0,0), (0,0)
+           
     print(f"calculated boards: {len(evaluated_boards)}")
+    print(f"search depth: {max_depth}, time used: {time.time() - start_time:.2f}s")
 
     best_first_moves = getBestBoards(evaluated_boards)
 
-    return_pos_x, return_pos_y = random.choice(best_first_moves)
+    return_pos_x, return_pos_y = random.choice(best_first_moves)    
     
     end_time = time.time()
     calculate_execution_time(start_time, end_time)
-
+    
     return return_pos_x, return_pos_y
 
 
-register_chess_bot("01BFS", Observer)
+register_chess_bot("BFS_limit", observer_with_limit)
