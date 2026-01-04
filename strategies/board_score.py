@@ -9,7 +9,7 @@ def get_board_score(board: Board, player_color: str) -> int:
         "n": 22,
         "b": 22,
         "q": 23,
-        "k": 1000,
+        "k": 1000000,
     }
     for x in range(board.shape[0]):
         for y in range(board.shape[1]):
