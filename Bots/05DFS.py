@@ -94,6 +94,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         best_move = None
         best_score = float("-inf")
+        best_moves = []  # Stocke tous les moves avec le meilleur score
 
         for move_from, move_to, next_board in moves:
             elapsed_time = time.time() - start_time
@@ -106,13 +107,15 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
             if score > best_score:
                 best_score = score
-                best_move = (move_from, move_to)
+                best_moves = [(move_from, move_to)]  # Nouveau meilleur score
+            elif score == best_score:
+                best_moves.append((move_from, move_to))  # Même score
 
-        if best_move is None:
+        if not best_moves:
             move_from, move_to, _ = random.choice(moves)
             return move_from, move_to
 
-        return best_move
+        return random.choice(best_moves)
 
     return get_best_move(initial_board, 3)
 
