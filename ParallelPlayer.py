@@ -5,13 +5,14 @@ from PyQt6 import QtCore
 class ParallelTurn(QtCore.QThread):
     """ Thread wrapper """
 
-    def __init__(self, ai_func, player_sequence, board, time_budget, tile_width, tile_height):
+    def __init__(self, ai_func, player_sequence, board, time_budget, tile_width, tile_height, metrics=None):
         super().__init__()
 
         self.ai_func = ai_func
         self.board = board
         self.player_sequence = player_sequence
         self.time_budget = time_budget
+        self.metrics = metrics
 
         self.team = int(player_sequence[0])
         # print("Initializing Parallel Player for team ", type(player_sequence[0]))
@@ -29,6 +30,7 @@ class ParallelTurn(QtCore.QThread):
                             np.copy(self.board),
                             self.time_budget,
                             tile_width=self.tile_width,
-                            tile_height=self.tile_height)
+                            tile_height=self.tile_height,
+                            metrics=self.metrics)
         
 

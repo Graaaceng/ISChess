@@ -10,9 +10,13 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
     my_color = player_sequence[1]
     opponent_color = "w" if my_color == "b" else "b"
+    metrics = kwargs.get("metrics", None)
 
     start_time = time.time()
     time_limit = time_budget if time_budget else float("inf")
+
+    nodes_explored = 0
+    possible_moves = []
 
     def get_all_moves(
         board: Board, color: str
@@ -60,6 +64,8 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         max_depth: int,
         is_maximizing: bool,
     ) -> int:
+        nonlocal nodes_explored
+        nodes_explored += 1
 
         if depth >= max_depth or not has_both_kings(board):
             return get_board_score(board, my_color)
@@ -86,13 +92,16 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
     def get_best_move(
         board: Board, max_depth: int
     ) -> tuple[tuple[int, int], tuple[int, int]]:
+        nonlocal nodes_explored, possible_moves
+        nodes_explored = 0
 
         moves = get_all_moves(board, my_color)
 
         if not moves:
             return (0, 0), (0, 0)
 
-        best_move = None
+        possible_moves.append(len(moves))
+
         best_score = float("-inf")
         best_moves = []
         for move_from, move_to, next_board in moves:
@@ -116,7 +125,14 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         return random.choice(best_moves)
 
-    return get_best_move(initial_board, 3)
+    result = get_best_move(initial_board, 3)
+
+    if metrics:
+        metrics.add_nodes_explored(nodes_explored)
+        if possible_moves:
+            metrics.add_possible_moves(possible_moves[-1])
+
+    return result
 
 
 register_chess_bot("05DFS", Observer)

@@ -16,6 +16,8 @@ from Piece import Piece
 from PieceManager import PieceManager
 from Player import Player
 from save_results import ResultSaver
+from strategies.board_score import get_board_score
+
 
 if TYPE_CHECKING:
     from ChessArena import ChessArena
@@ -143,6 +145,7 @@ class GameManager:
             budget,
             tile_width,
             tile_height,
+            player.metrics,
         )
 
         self.current_player.setTerminationEnabled(True)
@@ -424,6 +427,10 @@ class GameManager:
         player: Player = self.players[self.turn]
         player.metrics.update(self.current_player_board, self.get_sequence())
         player.metrics.add_move_time(move_time)
+
+        material = get_board_score(self.current_player_board, player.color)
+        player.metrics.add_material_balance(material)
+
         print(
             f"{color_name}: {player.metrics.get_summary()} - last move: {move_time:.3f}"
         )
