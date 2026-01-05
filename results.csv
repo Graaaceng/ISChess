@@ -1,4 +1,4 @@
-game,winner,white_bot,black_bot,total_turns,metric,white_dom,white_plays,white_pct,black_dom,black_plays,black_pct,white_avg_time,white_total_time,black_avg_time,black_total_time,white_total_nodes,white_avg_nodes,white_avg_bf,white_material_trend,black_total_nodes,black_avg_nodes,black_avg_bf,black_material_trend,white_depth,black_depth
+game,winner,white_bot,black_bot,total_turns,metric,white_dom,white_plays,white_pct,black_dom,black_plays,black_pct,white_avg_time,white_total_time,black_avg_time,black_total_time,white_total_nodes,white_avg_nodes,white_avg_possible_moves,white_material_trend,black_total_nodes,black_avg_nodes,black_avg_possible_moves,black_material_trend,white_depth,black_depth
 1,b,NaiveObserver,NaiveObserver,48,time_percent_we_dominate,11,24,45.83333333333333,8,24,33.33333333333333,,,,,0,0,0,0,0,0,0,0,,
 2,b,NaiveObserver,NaiveObserver,38,time_percent_we_dominate,2,19,10.526315789473683,12,19,63.1578947368421,,,,,0,0,0,0,0,0,0,0,,
 3,w,NaiveObserver,NaiveObserver,39,time_percent_we_dominate,9,20,45.0,10,19,52.63157894736842,,,,,0,0,0,0,0,0,0,0,,
@@ -34,3 +34,4 @@ game,winner,white_bot,black_bot,total_turns,metric,white_dom,white_plays,white_p
 33,b,03BFS,05DFS,86,time_percent_we_dominate,27,43,62.7906976744186,10,43,23.25581395348837,5.801074649012366,249.44620990753174,0.503714079080626,21.65970540046692,0,0,0,0,0,0,0,0,4,3
 34,w,05DFS,05DFS,67,time_percent_we_dominate,29,34,85.29411764705883,2,33,6.0606060606060606,0.5035686913658591,17.12133550643921,0.5003232522444292,16.510667324066162,0,0,0.0,1000133,0,0,0.0,-133,0,0
 35,b,05DFS,05DFS,52,time_percent_we_dominate,17,26,65.38461538461539,2,26,7.6923076923076925,0.5058079316065862,13.15100622177124,0.5212389139028696,13.55221176147461,355295,13665.192307692309,22.03846153846154,0,386008,14846.461538461539,23.26923076923077,1000000,0,0
+36,b,05DFS,06DFS_pruning,56,time_percent_we_dominate,0,28,0.0,24,28,85.71428571428571,0.49973889759608675,13.99268913269043,1.157639273575374,32.413899660110474,293039,10465.67857142857,19.178571428571427,-132,1728773,61741.892857142855,28.285714285714285,1000132,0,0
