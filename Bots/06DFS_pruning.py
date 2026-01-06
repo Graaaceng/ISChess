@@ -63,6 +63,8 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         depth: int,
         max_depth: int,
         is_maximizing: bool,
+        alpha: float,
+        beta: float,
     ) -> int:
         nonlocal nodes_explored
         nodes_explored += 1
@@ -79,14 +81,24 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         if is_maximizing:
             max_eval = float("-inf")
             for move_from, move_to, next_board in moves:
-                eval_score = minimax(next_board, depth + 1, max_depth, False)
+                eval_score = minimax(
+                    next_board, depth + 1, max_depth, False, alpha, beta
+                )
                 max_eval = max(max_eval, eval_score)
+                alpha = max(alpha, eval_score)
+                if beta <= alpha:
+                    break  # beta break
             return max_eval
         else:
             min_eval = float("inf")
             for move_from, move_to, next_board in moves:
-                eval_score = minimax(next_board, depth + 1, max_depth, True)
+                eval_score = minimax(
+                    next_board, depth + 1, max_depth, True, alpha, beta
+                )
                 min_eval = min(min_eval, eval_score)
+                beta = min(beta, eval_score)
+                if beta <= alpha:
+                    break  # Alpha break
             return min_eval
 
     def get_best_move(
@@ -104,6 +116,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         best_score = float("-inf")
         best_moves = []
+
         for move_from, move_to, next_board in moves:
             elapsed_time = time.time() - start_time
             if elapsed_time > 0.90 * time_limit:
@@ -111,7 +124,9 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
                     return move_from, move_to
                 return random.choice(best_moves)
 
-            score = minimax(next_board, 1, max_depth, False)
+            score = minimax(
+                next_board, 1, max_depth, False, float("-inf"), float("inf")
+            )
 
             if score > best_score:
                 best_score = score
@@ -125,7 +140,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         return random.choice(best_moves)
 
-    result = get_best_move(initial_board, 3)
+    result = get_best_move(initial_board, 4)
 
     if metrics:
         metrics.add_nodes_explored(nodes_explored)
@@ -135,4 +150,4 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
     return result
 
 
-register_chess_bot("05DFS", Observer)
+register_chess_bot("06DFS_pruning", Observer)

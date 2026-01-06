@@ -47,6 +47,14 @@ class ResultSaver:
             "white_total_time": white_stats["total_time"],
             "black_avg_time": black_stats["avg_time"],
             "black_total_time": black_stats["total_time"],
+            "white_total_nodes": white_stats.get("total_nodes", 0),
+            "white_avg_nodes": white_stats.get("avg_nodes", 0),
+            "white_avg_possible_moves": white_stats.get("avg_possible_moves", 0),
+            "white_material_trend": white_stats.get("material_trend", 0),
+            "black_total_nodes": black_stats.get("total_nodes", 0),
+            "black_avg_nodes": black_stats.get("avg_nodes", 0),
+            "black_avg_possible_moves": black_stats.get("avg_possible_moves", 0),
+            "black_material_trend": black_stats.get("material_trend", 0),
         }
         self.results.append(result)
         self.save()
@@ -55,8 +63,42 @@ class ResultSaver:
         if not self.results:
             return
 
+        fieldnames = [
+            "game",
+            "winner",
+            "white_bot",
+            "black_bot",
+            "total_turns",
+            "metric",
+            "white_dom",
+            "white_plays",
+            "white_pct",
+            "black_dom",
+            "black_plays",
+            "black_pct",
+            "white_avg_time",
+            "white_total_time",
+            "black_avg_time",
+            "black_total_time",
+            "white_total_nodes",
+            "white_avg_nodes",
+            "white_avg_possible_moves",
+            "white_material_trend",
+            "black_total_nodes",
+            "black_avg_nodes",
+            "black_avg_possible_moves",
+            "black_material_trend",
+            "white_depth",
+            "black_depth",
+        ]
+
+        for r in self.results:
+            for key in fieldnames:
+                if key not in r:
+                    r[key] = 0
+
         with open(self.filename, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=self.results[0].keys())
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.results)
 
