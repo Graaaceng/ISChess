@@ -1,4 +1,5 @@
 import random
+import time
 from functools import lru_cache
 from Bots.ChessBotList import register_chess_bot
 from strategies.base_moves import *
@@ -9,6 +10,13 @@ from utils.type import Board
 def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
     my_color = player_sequence[1]
+    metrics = kwargs.get("metrics", None)
+
+    start_time = time.time()
+    time_limit = time_budget if time_budget else float("inf")
+
+    nodes_explored = 0
+    possible_moves = []
 
     # Cache pour mémoïzation
     board_score_cache = {}
@@ -112,6 +120,12 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         max_depth: int,
         color: str,
     ):
+        nonlocal nodes_explored
+
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 0.90 * time_limit:
+            return boards
+
         if depth >= max_depth:
             return boards
 
@@ -119,10 +133,15 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         terminal_boards = []
 
         for board, score, move_path in boards:
+            elapsed_time = time.time() - start_time
+            if elapsed_time > 0.90 * time_limit:
+                break
+
             # get all possible next boards
             for next_from, next_to, next_board, next_score in getNextBoards(
                 [board], color, score
             ):
+                nodes_explored += 1
                 new_path = move_path + [(next_from, next_to)]
 
                 if not has_both_kings(next_board):
@@ -137,6 +156,9 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         explored_boards = bfs(next_boards, depth + 1, max_depth, next_color)
         return explored_boards + terminal_boards
 
+    initial_moves = getNextBoards([initial_board], my_color, 0)
+    total_initial_moves = len(initial_moves)
+
     initial_boards = [(initial_board, 0, [])]
     evaluated_boards = bfs(initial_boards, 0, 3, my_color)
 
@@ -146,7 +168,14 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
     best_first_moves = getBestBoards(evaluated_boards)
 
+    possible_moves.append(total_initial_moves)
+
     return_pos_x, return_pos_y = random.choice(best_first_moves)
+
+    if metrics:
+        metrics.add_nodes_explored(nodes_explored)
+        if possible_moves:
+            metrics.add_possible_moves(possible_moves[-1])
 
     return return_pos_x, return_pos_y
 
