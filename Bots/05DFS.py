@@ -67,6 +67,10 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         nonlocal nodes_explored
         nodes_explored += 1
 
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 0.90 * time_limit:
+            return get_board_score(board, my_color)
+
         if depth >= max_depth or not has_both_kings(board):
             return get_board_score(board, my_color)
 
