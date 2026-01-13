@@ -69,6 +69,10 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         nonlocal nodes_explored
         nodes_explored += 1
 
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 0.90 * time_limit:
+            return get_board_score(board, my_color)
+
         if depth >= max_depth or not has_both_kings(board):
             return get_board_score(board, my_color)
 
@@ -116,6 +120,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
         best_score = float("-inf")
         best_moves = []
+        alpha = float("-inf")
 
         for move_from, move_to, next_board in moves:
             elapsed_time = time.time() - start_time
@@ -124,15 +129,15 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
                     return move_from, move_to
                 return random.choice(best_moves)
 
-            score = minimax(
-                next_board, 1, max_depth, False, float("-inf"), float("inf")
-            )
+            score = minimax(next_board, 1, max_depth, False, alpha, float("inf"))
 
             if score > best_score:
                 best_score = score
                 best_moves = [(move_from, move_to)]
             elif score == best_score:
                 best_moves.append((move_from, move_to))
+
+            alpha = max(alpha, score)
 
         if not best_moves:
             move_from, move_to, _ = random.choice(moves)

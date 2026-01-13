@@ -11,9 +11,13 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
     start_time = time.time()
 
     my_color = player_sequence[1]
+    metrics = kwargs.get("metrics", None)
 
     start_time = time.time()
     time_limit = time_budget if time_budget else float("inf")
+
+    nodes_explored = 0
+    possible_moves = []
 
     def getMovesAndScore(
         board: Board, pos: tuple[int, int], color: str, score: int
@@ -103,6 +107,8 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         max_depth: int,
         color: str,
     ):
+        nonlocal nodes_explored
+
         elapsed_time = time.time() - start_time
         if elapsed_time > 0.90 * time_limit:
             return boards
@@ -122,6 +128,7 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
             for next_from, next_to, next_board, next_score in getNextBoards(
                 [board], color, score
             ):
+                nodes_explored += 1
                 new_path = move_path + [(next_from, next_to)]
 
                 if not has_both_kings(next_board):
@@ -136,6 +143,9 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
         explored_boards = bfs(next_boards, depth + 1, max_depth, next_color)
         return explored_boards + terminal_boards
 
+    initial_moves = getNextBoards([initial_board], my_color, 0)
+    total_initial_moves = len(initial_moves)
+
     initial_boards = [(initial_board, 0, [])]
     evaluated_boards = bfs(initial_boards, 0, 4, my_color)
 
@@ -145,10 +155,17 @@ def Observer(player_sequence, initial_board, time_budget, **kwargs):
 
     best_first_moves = getBestBoards(evaluated_boards)
 
+    possible_moves.append(total_initial_moves)
+
     return_pos_x, return_pos_y = random.choice(best_first_moves)
-    
+
     end_time = time.time()
     calculate_execution_time(start_time, end_time)
+
+    if metrics:
+        metrics.add_nodes_explored(nodes_explored)
+        if possible_moves:
+            metrics.add_possible_moves(possible_moves[-1])
 
     return return_pos_x, return_pos_y
 
